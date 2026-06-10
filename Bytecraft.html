@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ByteCraft — Organizador Estudiantil con IA</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent-purple: #8b5cf6;
+    --accent-indigo: #6366f1;
+    --accent-green: #22c55e;
+    --accent-green-dark: #16a34a;
+    --color-bg: #ffffff;
+    --color-bg2: #f8f7ff;
+    --color-border: #e5e2ff;
+    --color-border2: #d0ceff;
+    --color-text: #1e1b3a;
+    --color-text2: #6b7280;
+    --color-text3: #a0a0b0;
+    --font: 'Inter', system-ui, sans-serif;
+    --radius: 14px;
+    --shadow-md: 0 4px 20px rgba(99,74,255,.10);
+  }
+
+  html, body { height: 100%; font-family: var(--font); background: #0a0118; color: var(--color-text); overflow: hidden; }
+
+  /* ══════════════════════════════════════
+     SPLASH SCREEN
+  ══════════════════════════════════════ */
+  #splash {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #0a0118 0%, #130630 40%, #0d1040 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* animated background orbs */
+  #splash::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(34,197,94,.12) 0%, transparent 65%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse-orb 4s ease-in-out infinite;
+  }
+  #splash::after {
+    content: '';
+    position: absolute;
+    width: 900px; height: 900px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,92,246,.08) 0%, transparent 65%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse-orb 4s ease-in-out infinite reverse;
+  }
+
+  @keyframes pulse-orb {
+    0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    50% { transform: translate(-50%,-50%) scale(1.15); opacity: .6; }
+  }
+
+  /* floating particles */
+  .particle {
+    position: absolute;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(34,197,94,.5);
+    animation: float-particle linear infinite;
+  }
+
+  @keyframes float-particle {
+    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: .5; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  /* ── LOGO SPLASH ── */
+  .splash-logo-wrap {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 28px;
+    animation: splashFadeIn .9s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  @keyframes splashFadeIn {
+    from { opacity:0; transform: translateY(30px) scale(.95); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  /* Big SVG logo mark */
+  .splash-icon {
+    width: 110px; height: 110px;
+    position: relative;
+  }
+
+  .splash-icon svg {
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 0 28px rgba(34,197,94,.45)) drop-shadow(0 0 8px rgba(34,197,94,.6));
+    animation: icon-spin-in .8s cubic-bezier(.34,1.56,.64,1) .2s both;
+  }
+
+  @keyframes icon-spin-in {
+    from { opacity:0; transform: scale(0.4) rotate(-20deg); }
+    to   { opacity:1; transform: scale(1) rotate(0deg); }
+  }
+
+  .splash-title {
+    font-size: clamp(42px, 7vw, 68px);
+    font-weight: 900;
+    letter-spacing: -.03em;
+    line-height: 1;
+    text-align: center;
+    background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 35%, #22c55e 65%, #86efac 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: splashFadeIn .8s .35s both;
+  }
+
+  .splash-sub {
+    font-size: 15px;
+    color: rgba(167,243,208,.55);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 400;
+    animation: splashFadeIn .8s .5s both;
+  }
+
+  /* ── WELCOME TEXT ── */
+  .splash-welcome {
+    position: relative; z-index: 2;
+    text-align: center;
+    animation: splashFadeIn .8s .65s both;
+    margin-top: 20px;
+  }
+
+  .splash-welcome h2 {
+    font-size: 22px;
+    font-weight: 300;
+    color: rgba(255,255,255,.75);
+    letter-spacing: .02em;
+  }
+  .splash-welcome h2 span {
+    font-weight: 700;
+    color: #86efac;
+  }
+
+  .splash-welcome p {
+    font-size: 13px;
+    color: rgba(167,243,208,.4);
+    margin-top: 6px;
+    letter-spacing: .04em;
+  }
+
+  /* ── BUTTONS ── */
+  .splash-buttons {
+    position: relative; z-index: 2;
+    display: flex;
+    gap: 14px;
+    margin-top: 36px;
+    animation: splashFadeIn .8s .8s both;
+  }
+
+  .btn-iniciar {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 36px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    cursor: pointer;
+    font-family: var(--font);
+    display: flex; align-items: center; gap: 9px;
+    box-shadow: 0 4px 24px rgba(34,197,94,.4), 0 0 0 1px rgba(34,197,94,.2);
+    transition: all .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-iniciar::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .btn-iniciar:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(34,197,94,.55), 0 0 0 1px rgba(34,197,94,.3); }
+  .btn-iniciar:hover::before { opacity: 1; }
+  .btn-iniciar:active { transform: scale(.97); }
+
+  .btn-demo {
+    background: rgba(255,255,255,.06);
+    color: rgba(255,255,255,.65);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font);
+    display: flex; align-items: center; gap: 8px;
+    transition: all .2s;
+    backdrop-filter: blur(8px);
+  }
+  .btn-demo:hover { background: rgba(255,255,255,.1); color: white; border-color: rgba(255,255,255,.2); }
+
+  /* badges row */
+  .splash-badges {
+    position: relative; z-index: 2;
+    display: flex; gap: 10px;
+    margin-top: 28px;
+    animation: splashFadeIn .8s 1s both;
+  }
+  .sp-badge {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px;
+    color: rgba(167,243,208,.5);
+    background: rgba(34,197,94,.07);
+    border: 1px solid rgba(34,197,94,.15);
+    border-radius: 999px;
+    padding: 5px 12px;
+    letter-spacing: .03em;
+  }
+  .sp-badge i { font-size: 13px; color: #22c55e; }
+
+  /* ── SPLASH EXIT ── */
+  #splash.hide {
+    animation: splashExit .6s cubic-bezier(.55,0,1,.45) forwards;
+  }
+  @keyframes splashExit {
+    0%   { opacity:1; transform: scale(1); }
+    100% { opacity:0; transform: scale(1.04); pointer-events:none; }
+  }
+
+
+  /* ══════════════════════════════════════
+     MAIN APP
+  ══════════════════════════════════════ */
+  #app {
+    display: none;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--color-bg);
+  }
+  #app.show { display: flex; animation: appIn .5s ease both; }
+  @keyframes appIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px; min-width: 220px;
+    background: linear-gradient(180deg, #0a0118 0%, #130630 55%, #0d1040 100%);
+    display: flex; flex-direction: column;
+    padding: 0 .75rem 1.25rem;
+    gap: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 30%; left: -80px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(34,197,94,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* sidebar logo */
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 1.1rem 0.4rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .sidebar-logo-icon {
+    width: 36px; height: 36px;
+    flex-shrink: 0;
+  }
+  .sidebar-logo-icon svg {
+    width: 100%; height: 100%;
+    filter: drop-shadow(0 0 8px rgba(34,197,94,.5));
+  }
+  .sidebar-logo-texts .logo-name {
+    font-size: 15px; font-weight: 700;
+    color: white; letter-spacing: .01em; line-height: 1.1;
+  }
+  .sidebar-logo-texts .logo-tag {
+    font-size: 9.5px; color: rgba(134,239,172,.5);
+    letter-spacing: .05em; text-transform: uppercase;
+  }
+
+  .nav-section {
+    font-size: 9px; font-weight: 600;
+    color: rgba(167,139,250,.35);
+    letter-spacing: .09em; text-transform: uppercase;
+    padding: 8px 12px 3px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px; border-radius: 10px;
+    cursor: pointer; font-size: 13px;
+    color: rgba(196,181,253,.75);
+    transition: all .15s; user-select: none;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.07); color: white; }
+  .nav-item.active {
+    background: linear-gradient(90deg, rgba(124,58,237,.35), rgba(99,102,241,.15));
+    color: white; border-left: 2px solid #a855f7;
+  }
+  .nav-item i { font-size: 16px; }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
+
+  .sidebar-footer {
+    margin-top: auto; padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,.06);
+    font-size: 10px; color: rgba(134,239,172,.3);
+    text-align: center; letter-spacing: .03em;
+  }
+  .sidebar-footer strong { color: #22c55e; }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; overflow-y: auto; background: var(--color-bg); scroll-behavior: smooth; }
+  .main::-webkit-scrollbar { width: 5px; }
+  .main::-webkit-scrollbar-thumb { background: var(--color-border2); border-radius: 99px; }
+
+  .panel { display: none; padding: 1.75rem 1.5rem; animation: fadeUp .3s ease both; }
+  .panel.active { display: block; }
+
+  .panel-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 1.5rem; padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .panel-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px; flex-shrink: 0;
+  }
+  .panel-title { font-size: 18px; font-weight: 700; color: var(--color-text); line-height: 1.2; }
+  .panel-sub { font-size: 12px; color: var(--color-text2); margin-top: 1px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .stat-card { border-radius: var(--radius); padding: 1rem 1.1rem; position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s; cursor: default; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+  .stat-card::after { content:''; position:absolute; top:-12px; right:-12px; width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,.1); }
+  .stat-card-purple { background: linear-gradient(135deg, #7c3aed, #6366f1); }
+  .stat-card-orange { background: linear-gradient(135deg, #f97316, #ef4444); }
+  .stat-card-teal   { background: linear-gradient(135deg, #0ea5e9, #10b981); }
+  .stat-label { font-size: 10.5px; color: rgba(255,255,255,.75); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: white; line-height: 1; }
+  .stat-sub { font-size: 10px; color: rgba(255,255,255,.6); margin-top: 3px; }
+
+  .section-label { font-size: 10.5px; font-weight: 600; color: var(--color-text3); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .07em; }
+
+  .weekly-progress-wrap { background: var(--color-bg2); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1rem 1.1rem; margin-bottom: 1.25rem; }
+  .wp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+  .wp-label { color: var(--color-text2); font-weight: 500; }
+  .wp-pct { color: var(--accent-purple); font-weight: 600; }
+  .progress-bar-wrap { background: var(--color-border); border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 4px; }
+  .progress-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #7c3aed, #6366f1, #06b6d4); transition: width .5s ease; }
+
+  .task-input-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+  .task-input-row input { flex:1; font-size:13px; padding:9px 12px; border:1px solid var(--color-border); border-radius:10px; background:var(--color-bg2); color:var(--color-text); outline:none; font-family:var(--font); transition:border-color .15s; }
+  .task-input-row input:focus { border-color: var(--accent-purple); }
+  .task-input-row select { font-size:12px; padding:9px 8px; border:1px solid var(--color-border); border-radius:10px; background:var(--color-bg2); color:var(--color-text); outline:none; cursor:pointer; }
+  .btn-add { background:linear-gradient(135deg,#7c3aed,#6366f1); color:white; border:none; border-radius:10px; padding:9px 14px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:5px; white-space:nowrap; font-family:var(--font); font-weight:600; transition:opacity .15s,transform .1s; }
+  .btn-add:hover { opacity:.9; transform:translateY(-1px); }
+
+  .task-list { display: flex; flex-direction: column; gap: 7px; }
+  .task-item { display:flex; align-items:center; gap:10px; padding:11px 14px; border:1px solid var(--color-border); border-radius:12px; background:var(--color-bg); transition:border-color .15s,box-shadow .15s; animation:fadeUp .2s ease both; }
+  .task-item:hover { border-color:rgba(139,92,246,.4); box-shadow:0 2px 12px rgba(139,92,246,.08); }
+  .task-check { width:20px; height:20px; border:1.5px solid #c4b5fd; border-radius:50%; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+  .task-check.done { background:linear-gradient(135deg,#7c3aed,#6366f1); border-color:transparent; color:white; }
+  .task-text { flex:1; font-size:13px; color:var(--color-text); }
+  .task-text.done { text-decoration:line-through; color:var(--color-text3); }
+  .badge { font-size:10px; padding:3px 9px; border-radius:999px; font-weight:600; }
+  .badge-alta { background:#fee2e2; color:#991b1b; }
+  .badge-media { background:#fef3c7; color:#92400e; }
+  .badge-baja { background:#d1fae5; color:#065f46; }
+  .task-del { background:none; border:none; color:var(--color-text3); cursor:pointer; padding:2px; font-size:15px; opacity:0; transition:opacity .15s; }
+  .task-item:hover .task-del { opacity:1; }
+  .task-del:hover { color:#ef4444; }
+
+  .goal-item { border:1px solid var(--color-border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:10px; background:var(--color-bg); position:relative; overflow:hidden; transition:box-shadow .2s; }
+  .goal-item:hover { box-shadow: var(--shadow-md); }
+  .goal-item::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:linear-gradient(180deg,#a855f7,#6366f1); border-radius:4px 0 0 4px; }
+  .goal-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .goal-name { font-size:14px; font-weight:600; color:var(--color-text); flex:1; }
+  .goal-pct { font-size:12px; color:#7c3aed; font-weight:600; background:#ede9fe; padding:2px 8px; border-radius:999px; }
+  .goal-sub { font-size:12px; color:var(--color-text2); margin-bottom:8px; }
+  .steps-list { display:flex; flex-direction:column; gap:5px; margin-top:8px; }
+  .step-item { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--color-text2); }
+  .step-dot { width:13px; height:13px; border-radius:50%; border:1.5px solid #c4b5fd; flex-shrink:0; cursor:pointer; transition:all .2s; }
+  .step-dot.done { background:linear-gradient(135deg,#7c3aed,#6366f1); border-color:transparent; }
+
+  .racha-display { background:linear-gradient(135deg,#0a0118,#130630,#0d1040); border-radius:18px; padding:2rem; text-align:center; margin-bottom:1.5rem; position:relative; overflow:hidden; }
+  .racha-display::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,rgba(168,85,247,.2),transparent 70%); }
+  .racha-fire { font-size:38px; margin-bottom:8px; }
+  .racha-num { font-size:72px; font-weight:800; color:white; line-height:1; text-shadow:0 0 40px rgba(249,115,22,.5); }
+  .racha-label { font-size:14px; color:#a78bfa; margin-top:8px; }
+
+  .week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+  .day-cell { aspect-ratio:1; border-radius:10px; background:var(--color-bg2); border:1px solid var(--color-border); display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--color-text3); flex-direction:column; gap:3px; transition:all .2s; }
+  .day-cell.active { background:linear-gradient(135deg,#7c3aed,#6366f1); color:white; border-color:transparent; }
+  .day-cell.today { box-shadow:0 0 0 2px #a855f7; }
+  .day-name { font-size:9px; font-weight:600; }
+
+  .achievement-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .achievement { border:1px solid var(--color-border); border-radius:var(--radius); padding:1rem; text-align:center; background:var(--color-bg); transition:all .2s; }
+  .achievement.unlocked { border-color:#c4b5fd; background:linear-gradient(135deg,#faf5ff,#ede9fe); }
+  .achievement.unlocked:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(139,92,246,.15); }
+  .achievement.locked { opacity:.4; filter:grayscale(.5); }
+  .ach-icon-wrap { width:48px; height:48px; border-radius:14px; margin:0 auto 8px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+  .ach-icon-wrap.unlocked { background:linear-gradient(135deg,#7c3aed,#6366f1); color:white; box-shadow:0 4px 14px rgba(124,58,237,.3); }
+  .ach-icon-wrap.locked { background:var(--color-bg2); color:var(--color-text3); }
+  .ach-name { font-size:13px; font-weight:600; color:var(--color-text); }
+  .ach-desc { font-size:11px; color:var(--color-text2); margin-top:2px; }
+  .ach-badge { font-size:10px; padding:2px 9px; border-radius:999px; background:#7c3aed; color:white; margin-top:6px; display:inline-block; font-weight:500; }
+
+  .ai-panel-inner { display:flex; flex-direction:column; height:480px; }
+  .ai-messages { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-bottom:1rem; scroll-behavior:smooth; }
+  .ai-messages::-webkit-scrollbar { width:4px; }
+  .ai-messages::-webkit-scrollbar-thumb { background:var(--color-border2); border-radius:99px; }
+  .msg { max-width:82%; padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.6; animation:fadeUp .25s ease both; }
+  .msg-ai { background:linear-gradient(135deg,#ede9fe,#e0e7ff); color:#3730a3; align-self:flex-start; border-bottom-left-radius:4px; }
+  .msg-user { background:linear-gradient(135deg,#7c3aed,#6366f1); color:white; align-self:flex-end; border-bottom-right-radius:4px; }
+  .msg-thinking { background:var(--color-bg2); color:var(--color-text3); align-self:flex-start; font-style:italic; border-radius:14px; }
+  .ai-input-row { display:flex; gap:8px; padding-top:1rem; border-top:1px solid var(--color-border); flex-shrink:0; }
+  .ai-input { flex:1; font-size:13px; padding:10px 14px; border:1px solid #c4b5fd; border-radius:12px; background:var(--color-bg2); color:var(--color-text); outline:none; font-family:var(--font); transition:border-color .15s; }
+  .ai-input:focus { border-color:var(--accent-purple); }
+  .btn-send { background:linear-gradient(135deg,#7c3aed,#6366f1); color:white; border:none; border-radius:12px; padding:10px 16px; font-size:16px; cursor:pointer; transition:opacity .15s,transform .1s; }
+  .btn-send:hover { opacity:.9; transform:translateY(-1px); }
+
+  .empty-state { font-size:13px; color:var(--color-text3); padding:1rem 0; display:flex; align-items:center; gap:6px; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SPLASH ══════════════ -->
+<div id="splash">
+
+  <!-- floating particles -->
+  <div class="particle" style="left:10%;animation-duration:8s;animation-delay:0s;width:4px;height:4px"></div>
+  <div class="particle" style="left:25%;animation-duration:11s;animation-delay:1s"></div>
+  <div class="particle" style="left:40%;animation-duration:9s;animation-delay:2.5s;width:2px;height:2px;background:rgba(139,92,246,.6)"></div>
+  <div class="particle" style="left:55%;animation-duration:13s;animation-delay:.5s"></div>
+  <div class="particle" style="left:70%;animation-duration:7s;animation-delay:3s;width:4px;height:4px"></div>
+  <div class="particle" style="left:85%;animation-duration:10s;animation-delay:1.5s;background:rgba(139,92,246,.5)"></div>
+  <div class="particle" style="left:18%;animation-duration:12s;animation-delay:4s;width:2px;height:2px"></div>
+  <div class="particle" style="left:62%;animation-duration:9.5s;animation-delay:2s;background:rgba(99,102,241,.5)"></div>
+
+  <!-- logo + title -->
+  <div class="splash-logo-wrap">
+
+    <div class="splash-icon">
+      <svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gOuter" x1="0" y1="0" x2="110" y2="110" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#4ade80"/>
+            <stop offset="50%" stop-color="#22c55e"/>
+            <stop offset="100%" stop-color="#16a34a"/>
+          </linearGradient>
+          <linearGradient id="gInner" x1="20" y1="20" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#86efac"/>
+            <stop offset="100%" stop-color="#22c55e"/>
+          </linearGradient>
+          <linearGradient id="gChip" x1="35" y1="35" x2="75" y2="75" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity=".95"/>
+            <stop offset="100%" stop-color="#bbf7d0" stop-opacity=".9"/>
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- outer rounded square -->
+        <rect x="4" y="4" width="102" height="102" rx="26" fill="url(#gOuter)" opacity=".18"/>
+        <rect x="8" y="8" width="94" height="94" rx="22" fill="url(#gOuter)" opacity=".3"/>
+        <rect x="12" y="12" width="86" height="86" rx="19" fill="#0a1f0e"/>
+        <!-- inner chip body -->
+        <rect x="30" y="30" width="50" height="50" rx="10" fill="url(#gInner)" opacity=".12"/>
+        <rect x="32" y="32" width="46" height="46" rx="9" fill="#0d2a12"/>
+        <rect x="34" y="34" width="42" height="42" rx="8" stroke="url(#gInner)" stroke-width="1.5" fill="none"/>
+        <!-- chip pins left -->
+        <rect x="18" y="39" width="14" height="4" rx="2" fill="url(#gInner)"/>
+        <rect x="18" y="49" width="14" height="4" rx="2" fill="url(#gInner)"/>
+        <rect x="18" y="59" width="14" height="4" rx="2" fill="url(#gInner)" opacity=".7"/>
+        <!-- chip pins right -->
+        <rect x="78" y="39" width="14" height="4" rx="2" fill="url(#gInner)"/>
+        <rect x="78" y="49" width="14" height="4" rx="2" fill="url(#gInner)"/>
+        <rect x="78" y="59" width="14" height="4" rx="2" fill="url(#gInner)" opacity=".7"/>
+        <!-- chip pins top -->
+        <rect x="39" y="18" width="4" height="14" rx="2" fill="url(#gInner)"/>
+        <rect x="49" y="18" width="4" height="14" rx="2" fill="url(#gInner)"/>
+        <rect x="59" y="18" width="4" height="14" rx="2" fill="url(#gInner)" opacity=".7"/>
+        <!-- chip pins bottom -->
+        <rect x="39" y="78" width="4" height="14" rx="2" fill="url(#gInner)"/>
+        <rect x="49" y="78" width="4" height="14" rx="2" fill="url(#gInner)"/>
+        <rect x="59" y="78" width="4" height="14" rx="2" fill="url(#gInner)" opacity=".7"/>
+        <!-- center B letter / circuit -->
+        <text x="55" y="64" text-anchor="middle" font-family="Inter,sans-serif" font-size="26" font-weight="900" fill="url(#gChip)" filter="url(#glow)">B</text>
+        <!-- corner dots -->
+        <circle cx="38" cy="38" r="2.5" fill="#22c55e" opacity=".6"/>
+        <circle cx="72" cy="38" r="2.5" fill="#22c55e" opacity=".6"/>
+        <circle cx="38" cy="72" r="2.5" fill="#22c55e" opacity=".6"/>
+        <circle cx="72" cy="72" r="2.5" fill="#22c55e" opacity=".6"/>
+      </svg>
+    </div>
+
+    <div>
+      <div class="splash-title">ByteCraft</div>
+      <div class="splash-sub">Organizador Estudiantil con IA</div>
+    </div>
+
+  </div>
+
+  <!-- welcome text -->
+  <div class="splash-welcome">
+    <h2>Bienvenido a tu <span>espacio inteligente</span></h2>
+    <p>Gestiona tareas · Alcanza objetivos · Mantén tu racha</p>
+  </div>
+
+  <!-- buttons -->
+  <div class="splash-buttons">
+    <button class="btn-iniciar" onclick="enterApp()">
+      <i class="ti ti-rocket"></i> Iniciar ahora
+    </button>
+    <button class="btn-demo" onclick="enterApp()">
+      <i class="ti ti-eye"></i> Ver demo
+    </button>
+  </div>
+
+  <!-- badges -->
+  <div class="splash-badges">
+    <div class="sp-badge"><i class="ti ti-robot"></i> IA integrada</div>
+    <div class="sp-badge"><i class="ti ti-flame"></i> Sistema de rachas</div>
+    <div class="sp-badge"><i class="ti ti-trophy"></i> Logros</div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sg1" x1="0" y1="0" x2="110" y2="110" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#4ade80"/>
+              <stop offset="100%" stop-color="#16a34a"/>
+            </linearGradient>
+            <linearGradient id="sg2" x1="20" y1="20" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#86efac"/>
+              <stop offset="100%" stop-color="#22c55e"/>
+            </linearGradient>
+          </defs>
+          <rect x="12" y="12" width="86" height="86" rx="19" fill="#0a1f0e"/>
+          <rect x="34" y="34" width="42" height="42" rx="8" stroke="url(#sg2)" stroke-width="1.5" fill="none"/>
+          <rect x="18" y="39" width="14" height="4" rx="2" fill="url(#sg2)"/>
+          <rect x="18" y="49" width="4" height="4" rx="2" fill="url(#sg2)" opacity=".5"/>
+          <rect x="78" y="39" width="14" height="4" rx="2" fill="url(#sg2)"/>
+          <rect x="78" y="49" width="4" height="4" rx="2" fill="url(#sg2)" opacity=".5"/>
+          <rect x="39" y="18" width="4" height="14" rx="2" fill="url(#sg2)"/>
+          <rect x="49" y="18" width="4" height="14" rx="2" fill="url(#sg2)"/>
+          <rect x="39" y="78" width="4" height="14" rx="2" fill="url(#sg2)"/>
+          <rect x="49" y="78" width="4" height="14" rx="2" fill="url(#sg2)"/>
+          <text x="55" y="64" text-anchor="middle" font-family="Inter,sans-serif" font-size="26" font-weight="900" fill="white">B</text>
+          <circle cx="38" cy="38" r="2.5" fill="#22c55e" opacity=".7"/>
+          <circle cx="72" cy="38" r="2.5" fill="#22c55e" opacity=".7"/>
+          <circle cx="38" cy="72" r="2.5" fill="#22c55e" opacity=".7"/>
+          <circle cx="72" cy="72" r="2.5" fill="#22c55e" opacity=".7"/>
+        </svg>
+      </div>
+      <div class="sidebar-logo-texts">
+        <div class="logo-name">ByteCraft</div>
+        <div class="logo-tag">Organizador IA</div>
+      </div>
+    </div>
+
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" onclick="showPanel('inicio',this)"><i class="ti ti-home"></i> Inicio <div class="nav-dot" style="background:#a855f7"></div></div>
+    <div class="nav-item" onclick="showPanel('tareas',this)"><i class="ti ti-check"></i> Tareas <div class="nav-dot" style="background:#ef4444"></div></div>
+    <div class="nav-item" onclick="showPanel('objetivos',this)"><i class="ti ti-target"></i> Objetivos <div class="nav-dot" style="background:#06b6d4"></div></div>
+    <div class="nav-section" style="margin-top:4px">Seguimiento</div>
+    <div class="nav-item" onclick="showPanel('racha',this)"><i class="ti ti-flame"></i> Racha <div class="nav-dot" style="background:#f97316"></div></div>
+    <div class="nav-item" onclick="showPanel('logros',this)"><i class="ti ti-trophy"></i> Logros <div class="nav-dot" style="background:#eab308"></div></div>
+    <div class="nav-item" onclick="showPanel('ia',this)"><i class="ti ti-robot"></i> Asistente IA <div class="nav-dot" style="background:#10b981"></div></div>
+
+    <div class="sidebar-footer">
+      <strong>ByteCraft</strong> v1.0 · EPT 2025
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- INICIO -->
+    <div class="panel active" id="panel-inicio">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:linear-gradient(135deg,#7c3aed,#6366f1)"><i class="ti ti-home"></i></div>
+        <div><div class="panel-title">Bienvenido de vuelta 👋</div><div class="panel-sub">Aquí está tu resumen de hoy</div></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card stat-card-purple">
+          <div class="stat-label"><i class="ti ti-flame"></i> Racha activa</div>
+          <div class="stat-value">5</div><div class="stat-sub">días seguidos</div>
+        </div>
+        <div class="stat-card stat-card-orange">
+          <div class="stat-label"><i class="ti ti-check"></i> Completadas</div>
+          <div class="stat-value" id="stat-tareas">0</div><div class="stat-sub">tareas hoy</div>
+        </div>
+        <div class="stat-card stat-card-teal">
+          <div class="stat-label"><i class="ti ti-chart-bar"></i> Progreso</div>
+          <div class="stat-value" id="stat-pct">0%</div><div class="stat-sub">esta semana</div>
+        </div>
+      </div>
+      <div class="weekly-progress-wrap">
+        <div class="wp-header"><span class="wp-label">Progreso semanal</span><span class="wp-pct" id="wp-pct-label">0%</span></div>
+        <div class="progress-bar-wrap" style="height:10px"><div class="progress-bar" id="weekly-bar" style="width:0%"></div></div>
+      </div>
+      <div class="section-label">Pendientes hoy</div>
+      <div id="inicio-tasks" class="task-list"></div>
+    </div>
+
+    <!-- TAREAS -->
+    <div class="panel" id="panel-tareas">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:linear-gradient(135deg,#ef4444,#f97316)"><i class="ti ti-check"></i></div>
+        <div><div class="panel-title">Tareas</div><div class="panel-sub">Organiza lo que tienes que hacer</div></div>
+      </div>
+      <div class="task-input-row">
+        <input type="text" id="task-input" placeholder="Nueva tarea..." onkeydown="if(event.key==='Enter') addTask()" />
+        <select id="task-priority"><option value="alta">🔴 Alta</option><option value="media" selected>🟡 Media</option><option value="baja">🟢 Baja</option></select>
+        <button class="btn-add" onclick="addTask()"><i class="ti ti-plus"></i> Agregar</button>
+      </div>
+      <div class="task-list" id="task-list"></div>
+    </div>
+
+    <!-- OBJETIVOS -->
+    <div class="panel" id="panel-objetivos">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9)"><i class="ti ti-target"></i></div>
+        <div><div class="panel-title">Objetivos</div><div class="panel-sub">Tus metas grandes, paso a paso</div></div>
+      </div>
+      <div id="goals-list"></div>
+    </div>
+
+    <!-- RACHA -->
+    <div class="panel" id="panel-racha">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:linear-gradient(135deg,#f97316,#ef4444)"><i class="ti ti-flame"></i></div>
+        <div><div class="panel-title">Mi racha</div><div class="panel-sub">Días consecutivos de productividad</div></div>
+      </div>
+      <div class="racha-display">
+        <div class="racha-fire">🔥</div>
+        <div class="racha-num">5</div>
+        <div class="racha-label">días consecutivos siendo productivo</div>
+      </div>
+      <div class="section-label" style="margin-bottom:10px">Esta semana</div>
+      <div class="week-grid" id="week-grid"></div>
+    </div>
+
+    <!-- LOGROS -->
+    <div class="panel" id="panel-logros">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:linear-gradient(135deg,#eab308,#f97316)"><i class="ti ti-trophy"></i></div>
+        <div><div class="panel-title">Logros</div><div class="panel-sub">Tus recompensas por el esfuerzo</div></div>
+      </div>
+      <div class="achievement-grid" id="ach-grid"></div>
+    </div>
+
+    <!-- IA -->
+    <div class="panel" id="panel-ia">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:linear-gradient(135deg,#10b981,#06b6d4)"><i class="ti ti-robot"></i></div>
+        <div><div class="panel-title">Asistente IA</div><div class="panel-sub">Tu organizador inteligente personal</div></div>
+      </div>
+      <div class="ai-panel-inner">
+        <div class="ai-messages" id="ai-messages">
+          <div class="msg msg-ai">¡Hola! Soy tu asistente de ByteCraft 🎓 Puedo ayudarte a organizar tu tiempo, priorizar tareas y planificar tus estudios. ¿En qué te puedo ayudar hoy?</div>
+        </div>
+        <div class="ai-input-row">
+          <input type="text" class="ai-input" id="ai-input" placeholder="Escribe tu pregunta..." onkeydown="if(event.key==='Enter') sendAI()" />
+          <button class="btn-send" onclick="sendAI()"><i class="ti ti-send"></i></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function enterApp() {
+  const splash = document.getElementById('splash');
+  const app = document.getElementById('app');
+  splash.classList.add('hide');
+  setTimeout(() => {
+    splash.style.display = 'none';
+    document.body.style.background = '#fff';
+    app.classList.add('show');
+    renderInicio();
+    renderAchievements();
+  }, 550);
+}
+
+let tasks = [
+  { id:1, text:'Hacer tarea de matemáticas', priority:'alta', done:false },
+  { id:2, text:'Estudiar para examen de historia', priority:'media', done:false },
+  { id:3, text:'Leer capítulo de biología', priority:'baja', done:true }
+];
+let goals = [
+  { id:1, name:'Proyecto de EPT', desc:'Completar el emprendimiento ByteCraft', steps:[
+    {text:'Definir la idea',done:true},{text:'Programar la app',done:true},{text:'Preparar presentación',done:false},{text:'Exposición final',done:false}
+  ]},
+  { id:2, name:'Mejorar en matemáticas', desc:'Subir mi nota a 18 este bimestre', steps:[
+    {text:'Repasar álgebra',done:true},{text:'Practicar ejercicios',done:false},{text:'Dar examen de recuperación',done:false}
+  ]}
+];
+let achievements = [
+  {icon:'ti-flame',name:'Primera racha',desc:'5 días seguidos',unlocked:true},
+  {icon:'ti-check',name:'Completador',desc:'Termina 10 tareas',unlocked:true},
+  {icon:'ti-target',name:'Enfocado',desc:'Logra un objetivo',unlocked:false},
+  {icon:'ti-trophy',name:'Maestro',desc:'30 días de racha',unlocked:false},
+  {icon:'ti-star',name:'Organizado',desc:'Agrega 5 objetivos',unlocked:false},
+  {icon:'ti-robot',name:'Colaborador IA',desc:'Chatea 10 veces con la IA',unlocked:false}
+];
+const days = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const activedays = [true,true,true,true,true,false,false];
+
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => { p.style.display='none'; p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-'+name);
+  panel.style.display='block'; panel.classList.add('active');
+  el.classList.add('active');
+  if(name==='tareas')    renderTasks();
+  if(name==='inicio')    renderInicio();
+  if(name==='objetivos') renderGoals();
+  if(name==='racha')     renderRacha();
+  if(name==='logros')    renderAchievements();
+}
+
+function updateStats() {
+  const done = tasks.filter(t=>t.done).length;
+  const total = tasks.length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('stat-tareas').textContent = done;
+  document.getElementById('stat-pct').textContent = pct+'%';
+  document.getElementById('weekly-bar').style.width = pct+'%';
+  const lbl = document.getElementById('wp-pct-label');
+  if(lbl) lbl.textContent = pct+'%';
+}
+
+function renderTasks() {
+  document.getElementById('task-list').innerHTML = tasks.map(t => `
+    <div class="task-item">
+      <div class="task-check ${t.done?'done':''}" onclick="toggleTask(${t.id})">
+        ${t.done?'<i class="ti ti-check" style="font-size:11px"></i>':''}
+      </div>
+      <span class="task-text ${t.done?'done':''}">${t.text}</span>
+      <span class="badge badge-${t.priority}">${t.priority}</span>
+      <button class="task-del" onclick="deleteTask(${t.id})"><i class="ti ti-x"></i></button>
+    </div>`).join('');
+}
+
+function toggleTask(id) { tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t); renderTasks(); updateStats(); }
+function deleteTask(id) { tasks=tasks.filter(t=>t.id!==id); renderTasks(); updateStats(); }
+function addTask() {
+  const input=document.getElementById('task-input');
+  const priority=document.getElementById('task-priority').value;
+  if(!input.value.trim()) return;
+  tasks.push({id:Date.now(),text:input.value.trim(),priority,done:false});
+  input.value=''; renderTasks(); updateStats();
+}
+
+function renderInicio() {
+  updateStats();
+  const pending=tasks.filter(t=>!t.done).slice(0,3);
+  const el=document.getElementById('inicio-tasks');
+  if(!pending.length){el.innerHTML='<div class="empty-state"><i class="ti ti-circle-check" style="color:#22c55e;font-size:16px"></i> Sin pendientes. ¡Excelente trabajo!</div>';return;}
+  el.innerHTML=pending.map(t=>`<div class="task-item"><div class="task-check" onclick="toggleTask(${t.id});renderInicio()"></div><span class="task-text">${t.text}</span><span class="badge badge-${t.priority}">${t.priority}</span></div>`).join('');
+}
+
+function renderGoals() {
+  document.getElementById('goals-list').innerHTML=goals.map(g=>{
+    const done=g.steps.filter(s=>s.done).length;
+    const pct=Math.round(done/g.steps.length*100);
+    return `<div class="goal-item"><div class="goal-header"><span class="goal-name">${g.name}</span><span class="goal-pct">${pct}%</span></div><div class="goal-sub">${g.desc}</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div><div class="steps-list">${g.steps.map((s,i)=>`<div class="step-item"><div class="step-dot ${s.done?'done':''}" onclick="toggleStep(${g.id},${i})"></div><span style="${s.done?'text-decoration:line-through;color:var(--color-text3)':''}">${s.text}</span></div>`).join('')}</div></div>`;
+  }).join('');
+}
+
+function toggleStep(gid,idx){goals=goals.map(g=>g.id===gid?{...g,steps:g.steps.map((s,i)=>i===idx?{...s,done:!s.done}:s)}:g);renderGoals();}
+
+function renderRacha(){
+  document.getElementById('week-grid').innerHTML=days.map((d,i)=>`<div class="day-cell ${activedays[i]?'active':''} ${i===4?'today':''}"><span class="day-name">${d}</span>${activedays[i]?'<i class="ti ti-check" style="font-size:10px"></i>':''}</div>`).join('');
+}
+
+function renderAchievements(){
+  document.getElementById('ach-grid').innerHTML=achievements.map(a=>`<div class="achievement ${a.unlocked?'unlocked':'locked'}"><div class="ach-icon-wrap ${a.unlocked?'unlocked':'locked'}"><i class="ti ${a.icon}"></i></div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div>${a.unlocked?'<div class="ach-badge">✓ Desbloqueado</div>':''}</div>`).join('');
+}
+
+async function sendAI() {
+  const input=document.getElementById('ai-input');
+  const msg=input.value.trim();
+  if(!msg) return;
+  input.value='';
+  const msgs=document.getElementById('ai-messages');
+  msgs.innerHTML+=`<div class="msg msg-user">${msg}</div>`;
+  msgs.innerHTML+=`<div class="msg msg-thinking" id="thinking">✦ Pensando...</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  const tasksSummary=tasks.map(t=>`${t.text} (${t.priority}, ${t.done?'hecha':'pendiente'})`).join(', ');
+  const goalsSummary=goals.map(g=>`${g.name}: ${Math.round(g.steps.filter(s=>s.done).length/g.steps.length*100)}%`).join(', ');
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`Eres el asistente de IA de ByteCraft. Ayudas a estudiantes a organizarse. Responde en español, amigable, máximo 3 oraciones. Tareas: ${tasksSummary}. Objetivos: ${goalsSummary}. Racha: 5 días.`,messages:[{role:'user',content:msg}]})});
+    const data=await res.json();
+    document.getElementById('thinking').remove();
+    msgs.innerHTML+=`<div class="msg msg-ai">${data.content.map(c=>c.text||'').join('')}</div>`;
+  } catch(e) {
+    document.getElementById('thinking').remove();
+    msgs.innerHTML+=`<div class="msg msg-ai">Lo siento, no pude conectarme. Intenta de nuevo.</div>`;
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+</script>
+</body>
+</html>
